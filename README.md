@@ -1,2 +1,2 @@
-# 10Seconds-ai
+# 10Seconds-core
 CAU Capstone Design
