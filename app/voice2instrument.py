@@ -12,7 +12,7 @@ import os
 import ffmpeg
 
 # s3로부터 음성 파일 받아오기
-s3 = boto3.client('s3')
+s3 = boto3.client('s3', aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"), aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"))
 app = FastAPI()
 instrument_name = ['piano', 'bass', 'drum']
 sf_path=["GeneralUserMuseScore.sf2", "JazzClubBass.sf2", "GeneralUserMuseScore.sf2"]

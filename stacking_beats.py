@@ -1,23 +1,18 @@
 import numpy as np
 import pretty_midi
 from scipy.io.wavfile import write
-from pydantic import BaseModel
-from typing import List
+
 import boto3
-import datetime as dt
+
 import ffmpeg
 import os
-from fastapi import FastAPI
 
-class Item(BaseModel):
-    filename: str
-    type: str
 
 sf_path={"piano": "GeneralUserMuseScore.sf2", "bass": "JazzClubBass.sf2", "drum" : "GeneralUserMuseScore.sf2"}
 waveforms = []
 s3 = boto3.client('s3')
 
-app = FastAPI()
+
 
 @app.post("/beats/stack", status_code=200)
 def stack_beats(items: List[Item]):
