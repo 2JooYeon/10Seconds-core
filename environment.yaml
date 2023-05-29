@@ -80,4 +80,3 @@ dependencies:
     - urllib3==1.26.16
     - uvicorn==0.22.0
     - zipp==3.15.0
-prefix: /Users/jooyeon/opt/anaconda3/envs/jansound
