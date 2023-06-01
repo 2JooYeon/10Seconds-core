@@ -1,4 +1,5 @@
 import boto3
+from botocore.exceptions import ClientError
 import os
 import io
 from pydub import AudioSegment
@@ -6,6 +7,7 @@ from scipy.io.wavfile import write
 import ffmpeg
 import pretty_midi
 import numpy as np
+from fastapi import HTTPException
 
 bucket_name = "cau-tensecond"
 
@@ -42,19 +44,27 @@ def download_sf(s3):
 
 
 def download_voice(s3, filename):
-    response = s3.get_object(Bucket=bucket_name, Key=f"voice/{filename}.m4a")
-    audio_data = response['Body'].read()
-    audio = AudioSegment.from_file(io.BytesIO(audio_data), format='m4a')
-    audio = audio.export(format='wav')
-    audio_bytes = audio.read()
-    return io.BytesIO(audio_bytes)
+    try:
+        response = s3.get_object(Bucket=bucket_name, Key=f"voice/{filename}.m4a")
+        audio_data = response['Body'].read()
+        audio = AudioSegment.from_file(io.BytesIO(audio_data), format='m4a')
+        audio = audio.export(format='wav')
+        audio_bytes = audio.read()
+        return io.BytesIO(audio_bytes)
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "NoSuchKey":
+            raise HTTPException(status_code=400, detail=f"voice/{filename} key does not exist in the S3 bucket")
 
 
 def download_midi(s3, type, filename):
-    s3.download_file("cau-tensecond", f"midi/{type}/{filename}.mid", f"{filename}.mid")
-    midi = pretty_midi.PrettyMIDI(f"{filename}.mid")
-    os.remove(f"{filename}.mid")
-    return midi
+    try:
+        s3.download_file("cau-tensecond", f"midi/{type}/{filename}.mid", f"{filename}.mid")
+        midi = pretty_midi.PrettyMIDI(f"{filename}.mid")
+        os.remove(f"{filename}.mid")
+        return midi
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "404":
+            raise HTTPException(status_code=400, detail=f"midi/{type}/{filename} key does not exist in the S3 bucket")
 
 
 def upload_stacked_audio(s3, filename, stacked_audio):
