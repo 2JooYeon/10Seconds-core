@@ -2,6 +2,7 @@ import librosa
 import pretty_midi
 import numpy as np
 import copy
+from fastapi import HTTPException
 
 
 def find_silence_index(y):
@@ -70,14 +71,17 @@ def voice2midi(y):
                 t_temp = [t]
         # 중간에 0보다 같거나 작은 주파수가 있거나 평균율에 의해 새로운 그룹이 시작되어야 한다면
         else:
-            f0_group.append(f_temp)
-            f0_time.append(t_temp)
+            if len(f_temp):
+                f0_group.append(f_temp)
+                f0_time.append(t_temp)
             f_temp = []
             t_temp = []
             change = 1
 
+    if len(f0_group) == 0:
+        raise HTTPException(status_code=400, detail=f"volume of voice is too low to detect frequencies")
+
     count = 0
-    # instrument = 0
     piano_midi = pretty_midi.PrettyMIDI()
     bass_midi = pretty_midi.PrettyMIDI()
     drum_midi = pretty_midi.PrettyMIDI()
