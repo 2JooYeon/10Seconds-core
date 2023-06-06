@@ -25,7 +25,6 @@ def voice2midi(y):
     for silence in silence_index:
         y[silence[0]:silence[1]] = 0
 
-
     # 기본 주파수 찾기
     f0, voiced_flag, voiced_probs = librosa.pyin(y, fmin=librosa.note_to_hz('C2'), fmax=librosa.note_to_hz('C7'))
     # velocity 적용
@@ -77,7 +76,6 @@ def voice2midi(y):
             t_temp = []
             change = 1
 
-
     count = 0
     # instrument = 0
     piano_midi = pretty_midi.PrettyMIDI()
@@ -87,34 +85,33 @@ def voice2midi(y):
     acoustic_snare = 38
     closed_hi_hat = 42
     # piano
-    # if instrument_num == 0:
     piano_program = pretty_midi.instrument_name_to_program('Acoustic Grand Piano')
-    piano = pretty_midi.Instrument(piano_program)
+    piano = pretty_midi.Instrument(piano_program, name='piano')
     # bass
-    # if instrument_num == 1:
-    bass = pretty_midi.Instrument(0)
+    bass = pretty_midi.Instrument(0, name='bass')
     # drum
-    # if instrument_num == 2:
-    drum = pretty_midi.Instrument(0, is_drum=True)
+    drum = pretty_midi.Instrument(0, is_drum=True, name='drum')
+
+    # drum MIDI 데이터
     for i in range(len(f0_group)):
         if len(f0_group[i]):
             start = f0_time[i][0]
             end = f0_time[i][-1]
             # velocity = int(rms[0][librosa.time_to_frames(start)]/ np.max(rms[0]) * 127)
             velocity = 100
-            if count%4 == 0:
+            if count % 4 == 0:
                 note = pretty_midi.Note(velocity=velocity, start=start, pitch=bass_drum, end=end)
                 drum.notes.append(note)
                 note = pretty_midi.Note(velocity=velocity, start=start, pitch=closed_hi_hat, end=end)
                 drum.notes.append(note)
                 count += 1
 
-            elif count%4 == 1:
+            elif count % 4 == 1:
                 note = pretty_midi.Note(velocity=velocity, start=start, pitch=closed_hi_hat, end=end)
                 drum.notes.append(note)
                 count += 1
 
-            elif count%4 == 2:
+            elif count % 4 == 2:
                 note = pretty_midi.Note(velocity=velocity, start=start, pitch=bass_drum, end=end)
                 drum.notes.append(note)
                 note = pretty_midi.Note(velocity=velocity, start=start, pitch=closed_hi_hat, end=end)
@@ -123,12 +120,12 @@ def voice2midi(y):
                 drum.notes.append(note)
                 count += 1
 
-            elif count%4 == 3:
+            elif count % 4 == 3:
                 note = pretty_midi.Note(velocity=velocity, start=start, pitch=closed_hi_hat, end=end)
                 drum.notes.append(note)
                 count += 1
 
-    # if instrument_num == 0 or instrument_num == 1:
+    # piano 또는 bass MIDI 데이터
     for i in range(len(f0_group)):
         if len(f0_group[i]):
             mean_pitch = np.mean(f0_group[i])
@@ -139,7 +136,7 @@ def voice2midi(y):
             end = f0_time[i][-1]
 
             # velocity = int(rms[0][librosa.time_to_frames(start)]/ np.max(rms[0]) * 127)
-            velocity=100
+            velocity = 100
             note = pretty_midi.Note(velocity=velocity, pitch=pitch, start=start, end=end)
             piano.notes.append(note)
             bass.notes.append(note)
@@ -148,5 +145,5 @@ def voice2midi(y):
     bass_midi.instruments.append(bass)
     drum_midi.instruments.append(drum)
 
-    return {"piano":piano_midi, "bass":bass_midi, "drum":drum_midi}
+    return {"piano": piano_midi, "bass": bass_midi, "drum": drum_midi}
 
